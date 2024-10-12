@@ -1,48 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+    <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Room</title>
+    <title>BITSMEGLE</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.3/socket.io.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Raleway:wght@300&display=swap" rel="stylesheet">
     <style>
         body {
+            background-color: #f8f1e8; /* Light beige background */
+            color: #4b3d36; /* Dark brown text */
+            font-family: 'Libre Baskerville', serif; /* Classic font */
             display: flex;
             flex-direction: column;
             height: 95vh; /* Full viewport height */
-            margin: 10;
+            margin: 0; /* Reset margin */
+            padding: 10px;
+            line-height: 1.6; /* Improved readability */
         }
+
         #chat {
             flex: 1; /* Takes up most of the space */
-            border: 1px solid #ccc;
-            padding: 50px;
+            border: 2px solid #4b3d36; /* Dark border */
+            padding: 10px;
             overflow-y: scroll; /* Scrollable */
             margin-bottom: 10px; /* Space above the input */
+            background-color: rgba(255, 255, 255, 0.9); /* Slight transparency */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
         }
+
+        #chat .message {
+            margin: 5px 0; /* Reduced space between messages */
+            word-wrap: break-word; /* Break long messages to the next line */
+            white-space: normal; /* Ensure messages wrap to the next line */
+            display: flex;
+            justify-content: space-between;
+            padding: 8px; /* Padding around messages */
+            border-bottom: 1px solid #d1c6b9; /* Light border between messages */
+        }
+
+        #chat .username {
+            font-weight: bold;
+            margin-right: 5px;
+            color: #7b5e4a; /* Slightly darker username color */
+        }
+
+        #chat .time {
+            color: #9f8c7a; /* Light gray time */
+            font-size: 0.85em; /* Smaller font size */
+            margin-left: 10px;
+        }
+
         #input-area {
             display: flex; /* Flexbox for input and button */
+            margin-top: 10px; /* Space above input area */
         }
+
         #message {
             flex: 1; /* Input takes available space */
             padding: 10px;
-            border: 1px solid #ccc;
+            border: 1px solid #4b3d36; /* Dark border */
             border-radius: 4px;
             margin-right: 10px; /* Space between input and button */
+            background-color: #fff; /* White input field */
+            color: #4b3d36; /* Dark brown text */
         }
+
         button {
             padding: 10px 15px;
             border: none;
             border-radius: 4px;
-            background-color: #007BFF;
-            color: white;
+            background-color: #4b3d36; /* Dark button */
+            color: #fff; /* White text on button */
             cursor: pointer;
+            transition: background-color 0.3s ease; /* Smooth transition for hover effects */
+            font-family: 'Raleway', sans-serif; /* Secondary font */
         }
+
         button:hover {
-            background-color: #0056b3; /* Darker shade on hover */
+            background-color: #7b5e4a; /* Lighter button color on hover */
+        }
+
+        #active-user-count {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent background */
+            color: #4b3d36; /* Dark color */
+            padding: 5px 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
         }
     </style>
 </head>
+
+    
+    
 <body>
+    <h1 style="text-align: center;">BITSMEGLE</h1>
+    <div id="active-user-count">Active users: 0</div> <!-- Added Active User Count display -->
+
     <div id="chat"></div>
     <div id="input-area">
         <input id="message" autocomplete="off" placeholder="Type your message here"/>
@@ -54,15 +113,46 @@
 
         function sendMessage() {
             var msg = document.getElementById('message').value;
-            socket.emit('message', msg);
-            document.getElementById('message').value = '';
+            if (msg.trim() !== '') {
+                socket.emit('message', msg);
+                document.getElementById('message').value = '';
+            }
         }
 
-        socket.on('message', function(msg) {
+        // Adding event listener for the Enter key to send the message
+        document.getElementById('message').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Prevent default Enter behavior (form submission)
+                sendMessage(); // Call the sendMessage function
+            }
+        });
+
+        socket.on('message', function(data) {
             var chat = document.getElementById('chat');
-            chat.innerHTML += '<p>' + msg + '</p>';
+
+            // Extract username, message, time, and color from the data object
+            var username = data.username; // Get the username
+            var message = data.message;   // Get the message
+            var currentTime = data.time;  // Get the timestamp from the server
+            var userColor = data.color; // Get the color
+
+            // Create new message block with the username in the specified color
+            chat.innerHTML += `
+                <div class="message">
+                    <span><strong class="username" style="color: ${userColor};">${username}</strong>: ${message}</span>
+                    <span class="time" style="color: lightgray;">${currentTime}</span>
+                </div>
+            `;
+
             chat.scrollTop = chat.scrollHeight; // Scroll to the bottom
         });
+
+        // Listen for the active user count update from the server
+        socket.on('active_user_count', function(data) {
+            // Update the active user count display
+            document.getElementById('active-user-count').innerText = "Active users: " + data.count;
+        });
+
     </script>
 </body>
 </html>
