@@ -108,8 +108,12 @@ def handle_message(msg):
         time.sleep(0.2)
         emit('message', {'username': 'System', 'message': curr_count, 'time': datetime.now().strftime('%H:%M:%S'), 'color': 'darkbrown'}, broadcast=True)
         return
+    
         
-
+    elif msg.startswith("/help"):
+        commands = f" Type /color followed by a color to change usercolor.\nType /username followed by a username to change it."
+        emit('message', {'username': 'System', 'message': commands, 'time': datetime.now().strftime('%H:%M:%S'), 'color': 'darkbrown'}, broadcast=True)
+        return
     # Get current time
     current_time = datetime.now().strftime('%H:%M:%S')
 
@@ -122,4 +126,4 @@ def emit_active_user_count():
     socketio.emit('active_user_count', {'count': active_users_count}, broadcast=True)
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=7001)
+    socketio.run(app, host='0.0.0.0', port=5000)
