@@ -2,6 +2,7 @@ from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit
 from datetime import datetime
 import time
+import secrets
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -36,8 +37,7 @@ def handle_connect():
 
     user_id = request.remote_addr  # Get the user's IP address
     if user_id not in current_users:
-        counter = len(current_users)
-        user_name = usernames[counter % len(usernames)]  # Assign a username
+        user_name = secrets.choice(usernames) # Assign a username
         current_users[user_id] = (user_name, "#007BFF")  # Default color
 
         # Increment active user count
@@ -57,6 +57,7 @@ def handle_connect():
     t = int(active_users_count/2)
     curr_count = f"Active user count : {t}"
     emit('message', {'username': 'System', 'message': curr_count, 'time': datetime.now().strftime('%H:%M:%S'), 'color': 'darkbrown'}, broadcast=True)
+
 
 @socketio.on('disconnect')
 def handle_disconnect():
@@ -120,10 +121,13 @@ def handle_message(msg):
     # Emit the message to all clients
     emit('message', {'username': user_name, 'message': msg, 'time': current_time, 'color': user_color}, broadcast=True)
 
+    
+    # Limit the chat history to a certain number (e.g., 100 messages)
 def emit_active_user_count():
     """Emit the current active user count to all clients."""
     print(f"Active users: {active_users_count}")
     socketio.emit('active_user_count', {'count': active_users_count}, broadcast=True)
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000)
+    x = int(input("Enter port : "))
+    socketio.run(app, host='0.0.0.0', port=x)
